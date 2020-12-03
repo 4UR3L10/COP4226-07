@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30503.244
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PA7 Draft", "PA7 Draft\PA7 Draft.csproj", "{D19533F8-9178-45DE-AB4B-0C736E208AEB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D19533F8-9178-45DE-AB4B-0C736E208AEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D19533F8-9178-45DE-AB4B-0C736E208AEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D19533F8-9178-45DE-AB4B-0C736E208AEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D19533F8-9178-45DE-AB4B-0C736E208AEB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E7C61D5B-8B3B-41DD-8CD1-C676E6771305}
+	EndGlobalSection
+EndGlobal
