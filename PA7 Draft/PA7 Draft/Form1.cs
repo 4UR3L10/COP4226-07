@@ -30,7 +30,7 @@ namespace PA7_Draft
         private string savingWaitMessage = "Comitting sorted file, please wait...";
 
         // Global Variable Custom.
-        // [EXTRA CREDIT] Only doing 8 proceses at a time.
+        // Only doing 8 proceses at a time.
         private int ProcessSameTime = 8;
 
         // Constructor.
@@ -126,22 +126,15 @@ namespace PA7_Draft
             SortingTask assignedProcess = new SortingTask(txtDataFile, (BackgroundWorker)sender);
 
             // While Adding Wait.
-            while (!SortMachine.WorkingSet.TryAdd(txtDataFile, assignedProcess))
-            {
-               // Wait Until the task finish.
-            }
-
-            // Load THe Sorted File.
-            SortMachine.LoadSortAndSave(txtDataFile);
-
-            // Update The Message.
-            e.Result = successMessage;
+            while (!SortMachine.WorkingSet.TryAdd(txtDataFile, assignedProcess)) ;  // While Adding Wait.
+            SortMachine.LoadSortAndSave(txtDataFile);  /* Load and Sort Calling */
+            e.Result = successMessage;  /* Update the message */
         }
 
         // Method to update the state of the proceses.
         private void BackGroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            // [EXTRA CREDIT] Only doing 8 proceses at a time.
+            // Only doing 8 proceses at a time.
             for (int i = 0; i < ProcessSameTime; i++)
             {
                 // Checking if both objects are the same.
@@ -198,7 +191,7 @@ namespace PA7_Draft
             }
 
             // If there is not error.
-            // [EXTRA CREDIT] Only doing 8 proceses at a time.
+            // Only doing 8 proceses at a time.
             for (int i = 0; i < ProcessSameTime; i++)
             {
                 // Checking if both objects are the same.
@@ -268,7 +261,7 @@ namespace PA7_Draft
                 // Temporary Declaration inside the foreach loop.
                 int varLoop;
 
-                // [EXTRA CREDIT] Only doing 8 proceses at a time.
+                // Only doing 8 proceses at a time.
                 for (varLoop = 0; varLoop < ProcessSameTime; varLoop++)
                 {
                     // If not busy.
@@ -282,7 +275,7 @@ namespace PA7_Draft
                     }
                 }
 
-                // [EXTRA CREDIT] Only doing 8 proceses at a time.
+                //Only doing 8 proceses at a time.
                 if (varLoop == ProcessSameTime)
                 {
                     // Stop the foreach loop.
