@@ -17,17 +17,33 @@ namespace PA7_Draft
         private TextBox[] Labels;
         private TextBox[] Files;
 
+        // Global Variables For Messages. 
+        private string errorMessage = "bug";
+        private string readyMessage = "Ready!";
+        private string loadingMessage = "Loading";
+        private string savingMessage = "Comitting";
+        private string successMessage = "Realization";
+        private string fileWaitMessage = " files are waiting... ";
+        private string fileSortMessage = " files are being sorted!";
+        private string sortingWaitMessage = "Sorting, please wait...";
+        private string loadingWaitMessage = "Loading file, please wait...";
+        private string savingWaitMessage = "Comitting sorted file, please wait...";
+
+        // Global Variable Custom.
+        // [EXTRA CREDIT] Only doing 8 proceses at a time.
+        private int ProcessSameTime = 8;
+
         // Constructor.
         public MainForm()
         {
             InitializeComponent();
             SortMachine = new Worker();
             listBox1.DataSource = SortMachine.WaitingQueue;
-            Threads = new BackgroundWorker[8];
-            Bars = new ProgressBar[8];
-            Labels = new TextBox[8];
-            Files = new TextBox[8];
-            for (int i = 0; i < 8; i++)
+            Threads = new BackgroundWorker[ProcessSameTime];
+            Bars = new ProgressBar[ProcessSameTime];
+            Labels = new TextBox[ProcessSameTime];
+            Files = new TextBox[ProcessSameTime];
+            for (int i = 0; i < ProcessSameTime; i++)
             {
                 Threads[i]= new BackgroundWorker();
                 Bars[i] = new ProgressBar();
@@ -94,12 +110,13 @@ namespace PA7_Draft
         private void BackGroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             // Declarations.
-            string txtDataFile = (string)e.Argument;//To String Maybe // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+            string txtDataFile = e.Argument.ToString();
 
             // If the list contains the txtDataFile show an error.
             if (SortMachine.WorkingSet.ContainsKey(txtDataFile))
             {
-                e.Result = "error"; // CHANGEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+                // Update the Message.
+                e.Result = errorMessage;
 
                 // Return From the function.
                 return;
@@ -108,18 +125,24 @@ namespace PA7_Draft
             // Object declaration.
             SortingTask assignedProcess = new SortingTask(txtDataFile, (BackgroundWorker)sender);
 
-            // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-            while (!SortMachine.WorkingSet.TryAdd(txtDataFile, assignedProcess));
+            // While Adding Wait.
+            while (!SortMachine.WorkingSet.TryAdd(txtDataFile, assignedProcess))
+            {
+               // Wait Until the task finish.
+            }
+
+            // Load THe Sorted File.
             SortMachine.LoadSortAndSave(txtDataFile);
-            e.Result = "success"; // CHANGEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-            // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+
+            // Update The Message.
+            e.Result = successMessage;
         }
 
         // Method to update the state of the proceses.
         private void BackGroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             // [EXTRA CREDIT] Only doing 8 proceses at a time.
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < ProcessSameTime; i++)
             {
                 // Checking if both objects are the same.
                 if (sender.Equals(Threads[i]))
@@ -128,13 +151,13 @@ namespace PA7_Draft
                     Bars[i].Value = e.ProgressPercentage;
 
                     // If the current state is loading.
-                    if(((string)e.UserState).StartsWith("Loading"))  // To String Maybe // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+                    if ((e.UserState.ToString()).StartsWith(loadingMessage))  
                     {
                         // Retrieves the string.
-                        Files[i].Text = ((string)e.UserState).Substring(8, ((string)e.UserState).Length - 8);
+                        Files[i].Text = ((string)e.UserState).Substring(ProcessSameTime, ((string)e.UserState).Length - ProcessSameTime);
 
                         // Setting the message.
-                        Labels[i].Text = "Loading file, please wait...";
+                        Labels[i].Text = loadingWaitMessage;
 
                         // Assigning some properties.
                         Bars[i].Visible = true;
@@ -142,20 +165,20 @@ namespace PA7_Draft
                         Labels[i].Visible = true;
                     }
                     // If the current state is saving.
-                    else if (((string)e.UserState).StartsWith("Saving"))  // To String Maybe // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+                    else if (((string)e.UserState).StartsWith(savingMessage))  // To String Maybe 
                     {
                         // Updating the message of the bars.
-                        Labels[i].Text = "Saving sorted file, please wait...";
+                        Labels[i].Text = savingWaitMessage;
                     }
                     // Else Sorting.
                     else
                     {
                         // Updating the message of the bars.
-                        Labels[i].Text = "Sorting, please wait...";
+                        Labels[i].Text = sortingWaitMessage;
                     }
 
-                    // If None of the above stop.
-                    break; // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+                    // If None of the above stop the loop.
+                    i = ProcessSameTime;
                 }
             }
 
@@ -168,7 +191,7 @@ namespace PA7_Draft
         private void BackGroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             // If there is an error then is not completed.
-            if (((string)e.Result).Equals("error"))// SAME AS 1st METHOD // To String CHANGEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+            if (e.Result.ToString().Equals(errorMessage)) 
             {
                 // Exit Function.
                 return;
@@ -176,7 +199,7 @@ namespace PA7_Draft
 
             // If there is not error.
             // [EXTRA CREDIT] Only doing 8 proceses at a time.
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < ProcessSameTime; i++)
             {
                 // Checking if both objects are the same.
                 if (sender.Equals(Threads[i]))
@@ -189,10 +212,12 @@ namespace PA7_Draft
                     // Creating the object
                     SortingTask processObject = SortMachine.WorkingSet[Files[i].Text];
 
-                    // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+                    // Remove a Process Not Stop the For Loop.
                     while (!SortMachine.WorkingSet.TryRemove(Files[i].Text, out processObject)) ;
-                    break;            // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-                    // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+                    {
+                        // Stop the loop.
+                        i = ProcessSameTime;  
+                    }
                 }
             }
 
@@ -215,9 +240,10 @@ namespace PA7_Draft
                 SortMachine.UnfinishedProcess = 0;
 
                 // Update the the message of the tool strip.
-                toolStripStatusLabel1.Text = "Ready!"; 
+                toolStripStatusLabel1.Text = readyMessage;
 
-                return; // Return to avoid updating wron values in lines below.
+                // Return to avoid updating wron values in lines below.
+                return; 
             }
             else
             {
@@ -225,7 +251,7 @@ namespace PA7_Draft
                 toolStripProgressBar1.Value = (int)Math.Floor(7.0 * (SortMachine.UnfinishedProcess - Math.Min(SortMachine.UnfinishedProcess, SortMachine.WaitingQueue.Count)));
 
                 // Update the the message of the tool strip.
-                toolStripStatusLabel1.Text = SortMachine.WaitingQueue.Count + " " + "files are waiting..." + " " + SortMachine.WorkingSet.Count + " " + "files are being sorted!"; 
+                toolStripStatusLabel1.Text = SortMachine.WaitingQueue.Count + fileWaitMessage + SortMachine.WorkingSet.Count + fileSortMessage; 
             }
         }
 
@@ -243,20 +269,24 @@ namespace PA7_Draft
                 int varLoop;
 
                 // [EXTRA CREDIT] Only doing 8 proceses at a time.
-                for (varLoop = 0; varLoop < 8; varLoop++)
+                for (varLoop = 0; varLoop < ProcessSameTime; varLoop++)
                 {
                     // If not busy.
                     if (!Threads[varLoop].IsBusy)
                     {
+                        // Sync the Proceses.
                         Threads[varLoop].RunWorkerAsync(txtDataFile);
-                        break;// IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+
+                        // Stop the foreach loop.
+                        break;
                     }
                 }
 
                 // [EXTRA CREDIT] Only doing 8 proceses at a time.
-                if (varLoop == 8)
+                if (varLoop == ProcessSameTime)
                 {
-                    break;// IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+                    // Stop the foreach loop.
+                    break;
                 }
 
                 // If less than 8 add a new file to the process.
