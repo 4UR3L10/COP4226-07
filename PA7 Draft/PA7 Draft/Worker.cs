@@ -105,14 +105,15 @@ namespace PA7_Draft
     }
     class Worker: INotifyPropertyChanged
     {
+        internal int UnfinishedProcess;  // Following the internal convention delcaring an int var for the incomplete proceses.
         internal BindingList<string> WaitingQueue;
         internal ConcurrentDictionary<string,SortingTask> WorkingSet;
-        internal int IncompleteTasks; // ANALIZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+        
         internal Worker()
         {
+            UnfinishedProcess = 0;  // Initializing varible to zero.
             WaitingQueue = new BindingList<string>();
-            WorkingSet = new ConcurrentDictionary<string, SortingTask>();
-            IncompleteTasks = 0; // ANALIZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+            WorkingSet = new ConcurrentDictionary<string, SortingTask>();            
         }
         internal bool LoadSortAndSave(string file)
         {

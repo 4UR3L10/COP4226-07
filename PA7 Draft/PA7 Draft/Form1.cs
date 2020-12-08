@@ -1,18 +1,23 @@
-﻿using System;
-using System.Collections.Generic; // ANALYZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-using System.ComponentModel;
+﻿// Imports.
+using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.ComponentModel;
+using System.Collections.Generic;
 
 namespace PA7_Draft
 {
+    // Main Class.
     public partial class MainForm : Form
     {
+        // Global Variables.
         private Worker SortMachine;
         private BackgroundWorker[] Threads;
         private ProgressBar[] Bars;
         private TextBox[] Labels;
         private TextBox[] Files;
+
+        // Constructor.
         public MainForm()
         {
             InitializeComponent();
@@ -52,12 +57,12 @@ namespace PA7_Draft
             }
         }
 
-
+        // Allows the effect of enter the files by dragging.
+        // Validates for .txt files.
         private void ListBox1_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                /*
                 bool wrongExtension = false;
                 foreach (string file in (string[])e.Data.GetData(DataFormats.FileDrop))
                     if (System.IO.Path.GetExtension(file).ToUpperInvariant() != ".TXT")
@@ -67,7 +72,6 @@ namespace PA7_Draft
                     e.Effect = DragDropEffects.None;
                 
                 else
-                */
                     e.Effect = DragDropEffects.Copy;
             }                
         }
@@ -76,121 +80,198 @@ namespace PA7_Draft
         {
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             foreach (string file in files)
-                this.SortMachine.WaitingQueue.Add(file); 
-            SortMachine.IncompleteTasks += files.Length;// ANALYZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-            AssignTask();  // ANALIZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-        }
+                this.SortMachine.WaitingQueue.Add(file);
 
-        // ANALYZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-        private void AssignTask()
-        {
-            List<string> removed = new List<string>();
-            foreach (string file in SortMachine.WaitingQueue)
-            {
-                int i;
-                for (i = 0; i < 8; i++)                
-                    if (!Threads[i].IsBusy)
-                    {
-                        Threads[i].RunWorkerAsync(file);
-                        break;
-                    }
-                if (i == 8)
-                    break;
-                removed.Add(file);                
-            }
-            foreach (string r in removed)            
-                SortMachine.WaitingQueue.Remove(r);
-            UpdateStatusBar();
-        }
-        // ANALYZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+            // Setting the length of the files to the SortMachine.UnfinishedProcess variable created in the Worker class.
+            SortMachine.UnfinishedProcess += files.Length;  
 
-        // ANALYZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+            // Set process from the list and remove them.
+            // Calls the method to update the progress bar.
+            SetRequest();  
+        }
+        
+        // Method to execute the process.
         private void BackGroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            string filemame = (string)e.Argument;
+            // Declarations.
+            string txtDataFile = (string)e.Argument;//To String Maybe // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 
-            if(SortMachine.WorkingSet.ContainsKey(filemame))
+            // If the list contains the txtDataFile show an error.
+            if (SortMachine.WorkingSet.ContainsKey(txtDataFile))
             {
-                e.Result = "error";
+                e.Result = "error"; // CHANGEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+
+                // Return From the function.
                 return;
             }
 
-            SortingTask task = new SortingTask(filemame, (BackgroundWorker)sender);
-            while (!SortMachine.WorkingSet.TryAdd(filemame, task));
-            SortMachine.LoadSortAndSave(filemame);
-            e.Result = "success";
-        }
-        // ANALYZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+            // Object declaration.
+            SortingTask assignedProcess = new SortingTask(txtDataFile, (BackgroundWorker)sender);
 
-        // ANALYZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+            // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+            while (!SortMachine.WorkingSet.TryAdd(txtDataFile, assignedProcess));
+            SortMachine.LoadSortAndSave(txtDataFile);
+            e.Result = "success"; // CHANGEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+            // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+        }
+
+        // Method to update the state of the proceses.
         private void BackGroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
+            // [EXTRA CREDIT] Only doing 8 proceses at a time.
             for (int i = 0; i < 8; i++)
             {
+                // Checking if both objects are the same.
                 if (sender.Equals(Threads[i]))
                 {
+                    // Assigninig ProgressChanged to the multiple progress bars.
                     Bars[i].Value = e.ProgressPercentage;
-                    if(((string)e.UserState).StartsWith("Loading"))
+
+                    // If the current state is loading.
+                    if(((string)e.UserState).StartsWith("Loading"))  // To String Maybe // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
                     {
+                        // Retrieves the string.
                         Files[i].Text = ((string)e.UserState).Substring(8, ((string)e.UserState).Length - 8);
+
+                        // Setting the message.
+                        Labels[i].Text = "Loading file, please wait...";
+
+                        // Assigning some properties.
                         Bars[i].Visible = true;
                         Files[i].Visible = true;
                         Labels[i].Visible = true;
-                        Labels[i].Text = "Loading file, please wait...";
                     }
-                    else if (((string)e.UserState).StartsWith("Saving"))
+                    // If the current state is saving.
+                    else if (((string)e.UserState).StartsWith("Saving"))  // To String Maybe // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
                     {
+                        // Updating the message of the bars.
                         Labels[i].Text = "Saving sorted file, please wait...";
                     }
+                    // Else Sorting.
                     else
                     {
+                        // Updating the message of the bars.
                         Labels[i].Text = "Sorting, please wait...";
                     }
-                    break;
+
+                    // If None of the above stop.
+                    break; // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
                 }
             }
-            UpdateStatusBar();
-        }
-        // ANALYZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 
-        // ANALYZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+            // Updates the value and messages of the ToolStripProgressBarOne.
+            // Sets propeties of the ToolStripProgressBarOne.
+            UpgradeToolStripProgressBarOne();
+        }
+
+        // Method to complete the process.
         private void BackGroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (((string)e.Result).Equals("error"))
+            // If there is an error then is not completed.
+            if (((string)e.Result).Equals("error"))// SAME AS 1st METHOD // To String CHANGEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+            {
+                // Exit Function.
                 return;
+            }
 
-            for (int i = 0; i < 8; i++)            
+            // If there is not error.
+            // [EXTRA CREDIT] Only doing 8 proceses at a time.
+            for (int i = 0; i < 8; i++)
+            {
+                // Checking if both objects are the same.
                 if (sender.Equals(Threads[i]))
                 {
+                    // Assigning some properties.
                     Bars[i].Visible = false;
                     Files[i].Visible = false;
                     Labels[i].Visible = false;
-                    SortingTask task = SortMachine.WorkingSet[Files[i].Text];
-                    while (!SortMachine.WorkingSet.TryRemove(Files[i].Text, out task));
-                    break;
-                }           
-            AssignTask();
-        }
-        // ANALYZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 
-        // ANALYZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-        private void UpdateStatusBar()
-        {
-            if(SortMachine.WaitingQueue.Count + SortMachine.WorkingSet.Count == 0)
-            {
-                SortMachine.IncompleteTasks = 0;
-                toolStripProgressBar1.Value = 0;
-                toolStripStatusLabel1.Text = "Ready";
-                return;
+                    // Creating the object
+                    SortingTask processObject = SortMachine.WorkingSet[Files[i].Text];
+
+                    // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+                    while (!SortMachine.WorkingSet.TryRemove(Files[i].Text, out processObject)) ;
+                    break;            // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+                    // IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+                }
             }
 
-            toolStripProgressBar1.Value = (int)Math.Floor(0.10 * (SortMachine.IncompleteTasks - Math.Min(SortMachine.IncompleteTasks, SortMachine.WaitingQueue.Count)));
-            //toolStripProgressBar1.Value = (int)Math.Floor(100.0 * (SortMachine.IncompleteTasks - Math.Min(SortMachine.IncompleteTasks, SortMachine.WaitingQueue.Count)));
-            toolStripStatusLabel1.Text = SortMachine.WaitingQueue.Count + " files are waiting... " + SortMachine.WorkingSet.Count + " files are being sorted";
-
+            // Set process from the list and remove them.
+            // Calls the method to update the progress bar.
+            SetRequest();
         }
-        // ANALYZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+
+        // Updates the value and messages of the ToolStripProgressBarOne.
+        // Sets propeties of the ToolStripProgressBarOne.
+        private void UpgradeToolStripProgressBarOne()
+        {
+            // If there are not more process update.
+            if (SortMachine.WaitingQueue.Count + SortMachine.WorkingSet.Count == 0)
+            {
+                // Update the progress bar value.
+                toolStripProgressBar1.Value = 0;
+
+                // Update the value for the new variable created in the class.  
+                SortMachine.UnfinishedProcess = 0;
+
+                // Update the the message of the tool strip.
+                toolStripStatusLabel1.Text = "Ready!"; 
+
+                return; // Return to avoid updating wron values in lines below.
+            }
+            else
+            {
+                // If there are more process Update the value of the progress bat accordinly.
+                toolStripProgressBar1.Value = (int)Math.Floor(7.0 * (SortMachine.UnfinishedProcess - Math.Min(SortMachine.UnfinishedProcess, SortMachine.WaitingQueue.Count)));
+
+                // Update the the message of the tool strip.
+                toolStripStatusLabel1.Text = SortMachine.WaitingQueue.Count + " " + "files are waiting..." + " " + SortMachine.WorkingSet.Count + " " + "files are being sorted!"; 
+            }
+        }
+
+        // Set process from the list and remove them.
+        // Calls the method to update the progress bar.
+        private void SetRequest()
+        {
+            // Declarations.
+            List<string> takeAwayList = new List<string>();
+
+            // Processing the files.
+            foreach (string txtDataFile in SortMachine.WaitingQueue)
+            {
+                // Temporary Declaration inside the foreach loop.
+                int varLoop;
+
+                // [EXTRA CREDIT] Only doing 8 proceses at a time.
+                for (varLoop = 0; varLoop < 8; varLoop++)
+                {
+                    // If not busy.
+                    if (!Threads[varLoop].IsBusy)
+                    {
+                        Threads[varLoop].RunWorkerAsync(txtDataFile);
+                        break;// IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+                    }
+                }
+
+                // [EXTRA CREDIT] Only doing 8 proceses at a time.
+                if (varLoop == 8)
+                {
+                    break;// IMPROVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+                }
+
+                // If less than 8 add a new file to the process.
+                takeAwayList.Add(txtDataFile);
+            }
+
+            // Removed from the list the finished proceses.
+            foreach (string removedTxtDataFile in takeAwayList)
+            {
+                // Remove the element from the list.
+                SortMachine.WaitingQueue.Remove(removedTxtDataFile);
+            }
+
+            // Update the Main Progress Bar.
+            UpgradeToolStripProgressBarOne();
+        }        
     }
 }
-
-//return (int)Math.Floor(100 * Math.Min(1, Progress / EstimatedComparisons));
