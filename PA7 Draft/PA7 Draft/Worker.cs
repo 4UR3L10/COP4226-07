@@ -107,10 +107,12 @@ namespace PA7_Draft
     {
         internal BindingList<string> WaitingQueue;
         internal ConcurrentDictionary<string,SortingTask> WorkingSet;
+        internal int IncompleteTasks; // ANALIZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
         internal Worker()
         {
             WaitingQueue = new BindingList<string>();
             WorkingSet = new ConcurrentDictionary<string, SortingTask>();
+            IncompleteTasks = 0; // ANALIZEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
         }
         internal bool LoadSortAndSave(string file)
         {
